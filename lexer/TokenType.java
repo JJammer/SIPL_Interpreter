@@ -5,7 +5,7 @@ public enum TokenType {
     LEFT_PAREN, RIGHT_PAREN, SEMICOLON,
 
     // operation
-    SLASH, MINUS, PLUS, STAR, ASSIGN,
+    SLASH, MINUS, PLUS, ASTERISK, ASSIGN,
 
     // boolean operation
     AND, OR, NOT, EQUAL,
@@ -14,7 +14,7 @@ public enum TokenType {
 
 
     // literals
-    NUMBER,
+    NUMBER, IDENTIFIER,
 
     // keywords
     BEGIN, END, IF, THEN, ELSE,
