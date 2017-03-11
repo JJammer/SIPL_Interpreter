@@ -1,0 +1,13 @@
+begin
+    if B < 0 then
+    begin
+        A := 0 - A;
+        B:=0-B
+    end;
+    R :=0;
+    while B > 0 do
+    begin
+        R := R + A;
+        B:= B-1
+    end
+end
