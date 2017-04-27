@@ -1,21 +1,21 @@
 package lexer;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 
 public class Lexer {
-    private char nextSymbol;
-    private boolean isAtEnd;
-    private StringBuilder currentLexeme = new StringBuilder();
-    private int line = 1;
+    private int line = 1;       //current line of code
+    private int current = 0;    // current position
+    private int start = 0;      // starting position of new lexeme
+    private String input;
 
-    private BufferedReader reader;
 
     private static final HashMap<String, TokenType> keywords;
 
@@ -42,24 +42,23 @@ public class Lexer {
 
     private List<Token> tokens = new ArrayList<>();
 
-    Lexer(String path) {
-        try {
-            reader = new BufferedReader(new FileReader(path));
-            nextSymbol = (char) read();
-
-        } catch (FileNotFoundException e) {
-            System.out.println("File doesn't exist");
-        }
+    public Lexer(String input) {
+        this.input = input;
     }
 
     public List<Token> scanTokens() {
-        while (!isAtEnd) {
+        while (!isAtEnd()) {
+            start = current;
             scanToken();
         }
         return tokens;
     }
 
-    private void scanToken() { // find next token and return it
+    private boolean isAtEnd() {
+        return current >= input.length();
+    }
+
+    private void scanToken() { // find next token
         char c = returnSymbol();
         boolean hasError = false;
         switch (c) {
@@ -114,11 +113,9 @@ public class Lexer {
             case '\r':
             case '\t':
                 // Ignore whitespace.
-                currentLexeme.deleteCharAt(0);
                 break;
 
             case '\n':
-                currentLexeme.deleteCharAt(0);
                 line++;
                 break;
 
@@ -136,7 +133,7 @@ public class Lexer {
         while (isDigit(peek())) {
             returnSymbol();
         }
-        addToken(TokenType.NUMBER, currentLexeme.toString());
+        addToken(TokenType.NUMBER, input.substring(start, current));
     }
 
     private void identifier() {
@@ -145,7 +142,7 @@ public class Lexer {
         }
 
         // Is identifier a reserved word?
-        TokenType type = keywords.get(currentLexeme.toString());
+        TokenType type = keywords.get(input.substring(start, current));
         if (type == null) { type = TokenType.IDENTIFIER; }
 
         addToken(type);
@@ -160,7 +157,7 @@ public class Lexer {
     }
 
     private char peek() {
-        return (!isAtEnd) ? nextSymbol : '\0';
+        return (!isAtEnd()) ? input.charAt(current) : '\0';
     }
 
     private void addToken(TokenType type) {
@@ -168,42 +165,31 @@ public class Lexer {
     }
 
     private void addToken(TokenType type, Object literal) {
-        tokens.add(new Token(type, currentLexeme.toString(), line, literal));
-        currentLexeme = new StringBuilder();
+        tokens.add(new Token(type, input.substring(start, current), line, literal));
     }
 
     private boolean match(char c) {
-        if (nextSymbol == c) {
-            returnSymbol();
-            return true;
-        } else {
+        if (peek() != c) {
             return false;
         }
+        ++current;
+        return true;
     }
 
     private char returnSymbol() {
-        char symbolToReturn = nextSymbol;
-        currentLexeme.append(symbolToReturn);
-        nextSymbol = (char) read();
-        return symbolToReturn;
-    }
-
-    private int read() {  // wrapper for reader.read();
-        int r = -2;
-        try {
-            r = reader.read();
-            if (r == -1) { isAtEnd = true; }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-
-        return r;
+        return input.charAt(current++);
     }
 
     public static void main(String[] args) {
-        Lexer lexer = new Lexer("/Users/Vlada/Desktop/SIPL_Interpreter/src/tests/test1.txt");
-        for (Token t : lexer.scanTokens()) {
-            System.out.println(t);
+        try {
+            Path path = FileSystems.getDefault().getPath("/Users/Vlada/Desktop/SIPL_Interpreter/src/tests/", "test1.txt");
+            String fileContent = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            Lexer lexer = new Lexer(fileContent);
+            for (Token t : lexer.scanTokens()) {
+                System.out.println(t);
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
