@@ -88,7 +88,7 @@ public class Lexer {
                 if (match('=')) {
                     addToken(TokenType.ASSIGN);
                 } else {
-                    hasError = true;
+                    error(line, "Unexpected character");
                 }
                 break;
 
@@ -105,7 +105,7 @@ public class Lexer {
                 if (match('=')) {
                     addToken(TokenType.NOT_EQUAL);
                 } else {
-                    hasError = true;
+                    error(line, "Unexpected character");
                 }
                 break;
 
@@ -124,6 +124,8 @@ public class Lexer {
                     number();
                 } else if (isLetter(c)){
                     identifier();
+                } else {
+                    error(line, "Unexpected character");
                 }
 
         }
@@ -146,6 +148,10 @@ public class Lexer {
         if (type == null) { type = TokenType.IDENTIFIER; }
 
         addToken(type);
+    }
+
+    static private void error(int line, String message) {
+        System.err.println(String.format("[line: %d] Error: %s", line, message));
     }
 
     private boolean isLetter(char c) {
