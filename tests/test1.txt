@@ -1,5 +1,6 @@
 program
 begin
+    D := 1 * 7 + 8 - (120 - -40) > 0;
     if B < 0 then
     begin
         A := 0 - A;
